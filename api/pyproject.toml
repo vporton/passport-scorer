@@ -45,6 +45,7 @@ requests-toolbelt = "*"
 pyarrow = "*"
 pynacl = "*"
 faker = "*"
+ic-py = "^1.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
