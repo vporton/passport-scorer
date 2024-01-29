@@ -20,6 +20,7 @@ export interface UserState {
   authenticationError: boolean;
   authenticatingEth: boolean;
   loginComplete: boolean;
+  icPrincipal?: string;
   loginEth: () => Promise<void>;
   logoutEth: () => Promise<void>;
   loginIC: () => Promise<void>;
@@ -30,12 +31,14 @@ export interface UserState {
 }
 
 export const initialState: UserState = {
+  connected: false,
+  readyEth: false,
   connectedEth: false,
   connectedIC: false,
-  readyEth: false,
   authenticationError: false,
   authenticatingEth: false,
   loginComplete: false,
+  icPrincipal: undefined,
   loginEth: async () => {},
   logoutEth: async () => {},
   loginIC: async () => {},
@@ -57,6 +60,7 @@ export const UserProvider = ({ children }: { children: any }) => {
   const [loginCompleteEth, setLoginCompleteEth] = useState(false);
   const [authenticationError, setAuthenticationError] = useState(false);
   const [userWarning, setUserWarning] = useState<string | undefined>();
+  const [icPrincipal, setICPrincipal] = useState<string | undefined>();
 
   useEffect(() => {
     setConnected(connectedEth || connectedIC);
@@ -97,6 +101,7 @@ export const UserProvider = ({ children }: { children: any }) => {
       onSuccess: async () => {
         setConnectedIC(true);
         setReady(true);
+        setICPrincipal(authClient.getIdentity().getPrincipal())
       },
     });
   };
@@ -219,6 +224,7 @@ export const UserProvider = ({ children }: { children: any }) => {
         authenticatingEth: authenticatingEth,
         loginComplete: loginCompleteEth,
         authenticationError,
+        icPrincipal,
         loginEth,
         logoutEth,
         loginIC,

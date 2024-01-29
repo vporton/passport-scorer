@@ -66,7 +66,7 @@ const SIWICButton = ({
 };
 
 const LandingPage = () => {
-  const { connectedEth, connected, readyEth, authenticatingEth, loginEth, loginIC } = useContext(UserContext);
+  const { connectedEth, connectedIC, connected, readyEth, authenticatingEth, loginEth, loginIC } = useContext(UserContext);
 
   const [ready, setReady] = useState(readyEth);
   const [authenticating, setAuthenticating] = useState(authenticatingEth);

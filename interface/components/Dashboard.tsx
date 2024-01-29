@@ -1,5 +1,5 @@
 // --- React components/methods
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import DashboardTabs from "./DashboardTabs";
 import PageWidthGrid from "./PageWidthGrid";
@@ -15,6 +15,7 @@ import {
   FlagIcon,
   PlayCircleIcon,
 } from "@heroicons/react/24/solid";
+import { UserContext } from "../context/userContext";
 
 const QuickLink = ({
   text,
@@ -116,7 +117,34 @@ export const subheader = (
 );
 
 const Dashboard = () => {
-  return (
+  const { connectedEth, connectedIC, icPrincipal, connected, readyEth, authenticatingEth, logoutIC } = useContext(UserContext);
+
+  const [shortenedPrincipal, setShortenedPrincipal] = useState<string | undefined>();
+  useEffect(() => {
+    if (icPrincipal === undefined) {
+      return undefined;
+    }
+    const s = icPrincipal?.toString();
+    setShortenedPrincipal(s.substring(0,5) + '-...-' + s.substring(s.length-3,s.length));
+  }, [icPrincipal]);
+
+  return <>
+    {connectedIC &&
+      <div style={{
+        float: 'right', background: 'white', padding: '3px', border: '2px solid gray', borderRadius: '10px', color: 'black',
+      }}>
+        <img
+          src="/assets/icp-logo.svg"
+          alt="Ethereum Logo"
+          className={`mr-3 inline h-auto w-4`}
+        />
+        Internet Computer:{' '}
+        {shortenedPrincipal}{' '}
+        <button onClick={logoutIC} style={{color: 'blue'}}>
+          Logout
+        </button>
+      </div>
+    }
     <HeaderContentFooterGrid>
       <Header subheader={subheader} />
       <PageWidthGrid className="mt-4 h-fit">
@@ -134,7 +162,7 @@ const Dashboard = () => {
       </PageWidthGrid>
       <Footer />
     </HeaderContentFooterGrid>
-  );
+  </>;
 };
 
 export default Dashboard;
