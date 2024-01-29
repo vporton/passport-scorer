@@ -994,27 +994,33 @@ const redashInitScript = redashDbUrl.apply((url) =>
       redashMailPassword.apply(
         (mailPassword) =>
           `#!/bin/bash
-           echo "Setting environment variables..."
-           export POSTGRES_PASSWORD="${password}"
-           export REDASH_DATABASE_URL="${url}"
-           export REDASH_SECRET_KEY="${secretKey}"
-           export REDASH_MAIL_USERNAME="${redashMailUsername}"
-           export REDASH_MAIL_PASSWORD="${mailPassword}"
-           export REDASH_HOST="https://redash.api.scorer.gitcoin.co"
-           export REDASH_MAIL_DEFAULT_SENDER="passport+redash@gitcoin.co"
 
-           echo "Cloning passport-redash repository..."
-           git clone https://github.com/gitcoinco/passport-redash.git
+          echo "Install docker-compose ..."
+          curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
 
-           echo "Changing directory and setting permissions..."
-           cd passport-redash
-           sudo chmod +x ./setup.sh
-           ./setup.sh
+          echo "Setting environment variables..."
+          export POSTGRES_PASSWORD="${dbPassword}"
+          export REDASH_DATABASE_URL="${url}"
+          export REDASH_SECRET_KEY="${secretKey}"
+          export REDASH_MAIL_USERNAME="${redashMailUsername}"
+          export REDASH_MAIL_PASSWORD="${mailPassword}"
+          export REDASH_HOST="https://redash.api.staging.scorer.gitcoin.co"
+          export REDASH_MAIL_DEFAULT_SENDER="passport+redash_staging@gitcoin.co"
 
-           cd data
+          echo "Try to pull from git repo or clone the repo if it was not cloned before ..."
+          git pull /passport-redash || git clone https://github.com/gitcoinco/passport-redash.git /passport-redash
+          
+          echo "Changing directory and setting permissions..."
+          cd /passport-redash
+          
+          chmod +x ./setup.sh
+          ./setup.sh
 
-           sudo docker-compose up -d
-           `
+          cd data
+          sudo docker-compose up -d
+
+          `
       )
     )
   )
