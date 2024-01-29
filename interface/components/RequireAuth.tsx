@@ -16,7 +16,7 @@ const testingCypress =
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { ready, connected, logout } = useContext(UserContext);
+  const { readyEth: ready, connectedEth: connected, logout } = useContext(UserContext);
 
   useLayoutEffect(() => {
     unAuthorizedInterceptor(logout);

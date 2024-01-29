@@ -10,7 +10,7 @@ import { MemoryRouter } from "react-router-dom";
 
 describe("LandingPage", () => {
   it("should disable SIWE button while loading existing login", async () => {
-    const mockUserContext: UserState = makeTestUserContext({ ready: false });
+    const mockUserContext: UserState = makeTestUserContext({ readyEth: false });
     const { getAllByText } = renderWithContext(
       mockUserContext,
       <MemoryRouter>
@@ -22,7 +22,7 @@ describe("LandingPage", () => {
   });
 
   it("should enable SIWE button once ready", async () => {
-    const mockUserContext: UserState = makeTestUserContext({ ready: true });
+    const mockUserContext: UserState = makeTestUserContext({ readyEth: true });
     const { getAllByText } = renderWithContext(
       mockUserContext,
       <MemoryRouter>

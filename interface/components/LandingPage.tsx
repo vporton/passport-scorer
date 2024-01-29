@@ -1,5 +1,5 @@
 // --- React Methods
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // --- Context
@@ -35,8 +35,48 @@ const SIWEButton = ({
   );
 };
 
+const SIWICButton = ({
+  className,
+  login,
+  testId,
+  disabled,
+}: {
+  className?: string;
+  login: () => void;
+  testId: string;
+  disabled?: boolean;
+}) => {
+  return (
+    <button
+      data-testid={testId}
+      className={`rounded bg-purple-gitcoinpurple px-8 py-3 text-lg text-white disabled:cursor-not-allowed disabled:bg-purple-softpurple disabled:text-black ${className}`}
+      onClick={login}
+      disabled={disabled}
+    >
+      <img
+        src="/assets/icp-logo.svg"
+        alt="DFINITY Logo"
+        className={`mr-3 inline h-auto w-4 ${disabled ? "invert" : ""}`}
+      />
+      <span className="inline">
+        {disabled ? "Loading..." : "Sign-in with DFINITY"}
+      </span>
+    </button>
+  );
+};
+
 const LandingPage = () => {
-  const { connected, ready, authenticating, login } = useContext(UserContext);
+  const { connectedEth, connected, readyEth, authenticatingEth, loginEth, loginIC } = useContext(UserContext);
+
+  const [ready, setReady] = useState(readyEth);
+  const [authenticating, setAuthenticating] = useState(authenticatingEth);
+  useEffect(() => {
+    setReady(readyEth)
+  }, [readyEth]);
+  useEffect(() => {
+    setAuthenticating(authenticatingEth)
+  }, [authenticatingEth]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,7 +104,13 @@ const LandingPage = () => {
       </div>
       <SIWEButton
         className="mt-10 hidden md:block"
-        login={login}
+        login={loginEth}
+        testId="connectWalletButtonDesktop"
+        disabled={!ready}
+      />
+      <SIWICButton
+        className="mt-10 hidden md:block"
+        login={loginIC}
         testId="connectWalletButtonDesktop"
         disabled={!ready}
       />
@@ -81,7 +127,13 @@ const LandingPage = () => {
         <div></div>
         <SIWEButton
           className="col-span-4 block md:hidden"
-          login={login}
+          login={loginEth}
+          disabled={!ready}
+          testId="connectWalletButtonMobile"
+        />
+        <SIWICButton
+          className="col-span-4 block md:hidden"
+          login={loginIC}
           disabled={!ready}
           testId="connectWalletButtonMobile"
         />

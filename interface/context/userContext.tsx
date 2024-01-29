@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from "react";
 
 import { useConnectWallet, useWallets } from "@web3-onboard/react";
 import { WalletState } from "@web3-onboard/core";
+import { AuthClient } from "@dfinity/auth-client";
 import "../utils/onboard";
 
 import { initiateSIWE } from "../utils/siwe";
@@ -12,24 +13,33 @@ import {
 } from "../utils/interceptors";
 
 export interface UserState {
-  ready: boolean;
   connected: boolean;
+  readyEth: boolean;
+  connectedEth: boolean;
+  connectedIC: boolean;
   authenticationError: boolean;
-  authenticating: boolean;
+  authenticatingEth: boolean;
   loginComplete: boolean;
-  login: () => Promise<void>;
+  loginEth: () => Promise<void>;
+  logoutEth: () => Promise<void>;
+  loginIC: () => Promise<void>;
+  logoutIC: () => Promise<void>;
   logout: () => Promise<void>;
   userWarning?: string;
   setUserWarning: (warning?: string) => void;
 }
 
 export const initialState: UserState = {
-  connected: false,
-  ready: false,
+  connectedEth: false,
+  connectedIC: false,
+  readyEth: false,
   authenticationError: false,
-  authenticating: false,
+  authenticatingEth: false,
   loginComplete: false,
-  login: async () => {},
+  loginEth: async () => {},
+  logoutEth: async () => {},
+  loginIC: async () => {},
+  logoutIC: async () => {},
   logout: async () => {},
   setUserWarning: (warning?: string) => {},
 };
@@ -39,14 +49,20 @@ export const UserContext = createContext(initialState);
 export const UserProvider = ({ children }: { children: any }) => {
   const [{ wallet }, connect, disconnect] = useConnectWallet();
   const allWalletState = useWallets();
+  const [connectedEth, setConnectedEth] = useState(false);
+  const [connectedIC, setConnectedIC] = useState(false);
   const [connected, setConnected] = useState(false);
   const [ready, setReady] = useState(false);
-  const [authenticating, setAuthenticating] = useState(false);
-  const [loginComplete, setLoginComplete] = useState(false);
+  const [authenticatingEth, setAuthenticatingEth] = useState(false);
+  const [loginCompleteEth, setLoginCompleteEth] = useState(false);
   const [authenticationError, setAuthenticationError] = useState(false);
   const [userWarning, setUserWarning] = useState<string | undefined>();
 
-  const login = async () => {
+  useEffect(() => {
+    setConnected(connectedEth || connectedIC);
+  }, [connectedEth, connectedIC]);
+
+  const loginEth = async () => {
     connect()
       .then((wallets) => {
         const firstWallet = wallets[0];
@@ -58,7 +74,7 @@ export const UserProvider = ({ children }: { children: any }) => {
       });
   };
 
-  const logout = async () => {
+  const logoutEth = async () => {
     localStorage.removeItem("access-token");
     localStorage.removeItem("connectedWallets");
     if (allWalletState.length > 0) {
@@ -66,9 +82,36 @@ export const UserProvider = ({ children }: { children: any }) => {
         disconnect(wallet);
       });
     }
-    setLoginComplete(false);
-    setConnected(false);
+    setLoginCompleteEth(false);
+    setConnectedEth(false);
   };
+
+  const loginIC = async () => {
+    // FIXME: Model after loginEth.
+    const authClient = await AuthClient.create({});
+    authClient.login({
+      // identityProvider:
+      //   process.env.DFX_NETWORK === "ic"
+      //   ? "https://identity.ic0.app/#authorize"
+      //   : `http://localhost:4943?canisterId=${process.env.CANISTER_ID_INTERNET_IDENTITY}#authorize`,
+      onSuccess: async () => {
+        setConnectedIC(true);
+        setReady(true);
+      },
+    });
+  };
+
+  const logoutIC = async () => {
+    // FIXME: Model after logoutEth.
+    const authClient = await AuthClient.create({});
+    authClient.logout();
+  };
+
+  const logout = async () => {
+    logoutEth();
+    logoutIC();
+  };
+
 
   // Restore wallet connection from localStorage
   const setWalletFromLocalStorage = async (): Promise<void> => {
@@ -100,7 +143,7 @@ export const UserProvider = ({ children }: { children: any }) => {
           },
         });
 
-        setConnected(true);
+        setConnectedEth(true);
       } catch (e) {
         // remove localstorage state
         window.localStorage.removeItem("connectedWallets");
@@ -109,9 +152,10 @@ export const UserProvider = ({ children }: { children: any }) => {
     }
   };
 
+  // FIXME
   const authenticateWithScorerApi = async (wallet: WalletState) => {
     try {
-      setAuthenticating(true);
+      setAuthenticatingEth(true);
       const { siweMessage, signature } = await initiateSIWE(wallet);
       const tokens = await authenticate(siweMessage, signature);
 
@@ -124,12 +168,12 @@ export const UserProvider = ({ children }: { children: any }) => {
       localStorage.setItem("access-token", tokens.access);
       headerInterceptor();
 
-      setConnected(true);
-      setAuthenticating(false);
-      setLoginComplete(true);
+      setConnectedEth(true);
+      setAuthenticatingEth(false);
+      setLoginCompleteEth(true);
     } catch (e) {
       setAuthenticationError(true);
-      setAuthenticating(false);
+      setAuthenticatingEth(false);
     }
   };
 
@@ -168,12 +212,17 @@ export const UserProvider = ({ children }: { children: any }) => {
   return (
     <UserContext.Provider
       value={{
-        ready,
         connected,
-        authenticating,
-        loginComplete,
+        readyEth: ready,
+        connectedIC,
+        connectedEth: connected,
+        authenticatingEth: authenticatingEth,
+        loginComplete: loginCompleteEth,
         authenticationError,
-        login,
+        loginEth,
+        logoutEth,
+        loginIC,
+        logoutIC,
         logout,
         userWarning,
         setUserWarning,

@@ -67,6 +67,7 @@ from registry.utils import (
     permissions_required,
     reverse_lazy_with_query,
 )
+from ic.principal import Principal
 
 SCORE_TIMESTAMP_FIELD_DESCRIPTION = """
 The optional `timestamp` query parameter can be used to retrieve
@@ -223,7 +224,14 @@ async def ahandle_submit_passport(
     return score
 
 
+# TODO: For cleanness, throughout the source need to get rid of `address.lower()`,
+# despite it happens to work for both Ethereum and Internet Computer.
 def is_valid_address(address: str) -> bool:
+    """Either an Ethereum or Internet Computer address"""
+    try:
+        Principal.from_str(address)
+    except:  # There are different exceptions dependent on a particular error.
+        return False
     return (
         is_checksum_address(address)
         if is_checksum_formatted_address(address)

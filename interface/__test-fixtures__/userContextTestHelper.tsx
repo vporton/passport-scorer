@@ -24,10 +24,10 @@ export const makeTestUserContext = (
   initialState?: Partial<UserState>
 ): UserState => {
   return {
-    connected: false,
-    ready: true,
+    connectedEth: false,
+    readyEth: true,
     authenticationError: false,
-    authenticating: false,
+    authenticatingEth: false,
     loginComplete: false,
     login: async () => {},
     logout: async () => {},

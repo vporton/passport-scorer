@@ -62,17 +62,17 @@ const mockComponent = () => (
       {(value) => (
         <div>
           <button onClick={value.login}>Login</button>
-          <span data-testid="connected">{value.connected.toString()}</span>
+          <span data-testid="connected">{value.connectedEth.toString()}</span>
           <span data-testid="authenticationError">
             {value.authenticationError.toString()}
           </span>
           <span data-testid="authenticating">
-            {value.authenticating.toString()}
+            {value.authenticatingEth.toString()}
           </span>
           <span data-testid="loginComplete">
             {value.loginComplete.toString()}
           </span>
-          <span data-testid="ready">{value.ready.toString()}</span>
+          <span data-testid="ready">{value.readyEth.toString()}</span>
         </div>
       )}
     </UserContext.Consumer>

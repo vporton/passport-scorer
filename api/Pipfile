@@ -41,6 +41,7 @@ requests-toolbelt = "*"
 pyarrow = "*"
 pynacl = "*"
 faker = "*"
+ic-py = "*"
 
 [dev-packages]
 black = "*"
