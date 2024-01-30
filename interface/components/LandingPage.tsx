@@ -66,16 +66,16 @@ const SIWICButton = ({
 };
 
 const LandingPage = () => {
-  const { connectedEth, connectedIC, connected, readyEth, authenticatingEth, loginEth, loginIC } = useContext(UserContext);
+  const { connectedEth, connectedIC, connected, readyEth, readyIC, authenticatingEth, authenticatingIC, loginEth, loginIC } = useContext(UserContext);
 
-  const [ready, setReady] = useState(readyEth);
+  const [ready, setReady] = useState(readyEth && readyIC);
   const [authenticating, setAuthenticating] = useState(authenticatingEth);
   useEffect(() => {
-    setReady(readyEth)
-  }, [readyEth]);
+    setReady(readyEth && readyIC);
+  }, [readyEth, readyIC]);
   useEffect(() => {
-    setAuthenticating(authenticatingEth)
-  }, [authenticatingEth]);
+    setAuthenticating(authenticatingEth || authenticatingIC);
+  }, [authenticatingEth, authenticatingIC]);
 
   const navigate = useNavigate();
 

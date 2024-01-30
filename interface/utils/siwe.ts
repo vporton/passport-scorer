@@ -1,5 +1,6 @@
 import { WalletState } from "@web3-onboard/core";
 import { ethers } from "ethers";
+import { AuthClient } from "@dfinity/auth-client";
 import { SiweMessage } from "siwe";
 import { getNonce } from "./account-requests";
 
@@ -34,6 +35,23 @@ export const initiateSIWE = async (wallet: WalletState) => {
 
     const signature = await signer.signMessage(preparedMessage);
     return { siweMessage, signature };
+  } catch (error) {
+    throw error;
+  }
+};
+
+// TODO: Duplicate code with initiateSIWE
+export const initiateSIWIC = async (authClient: AuthClient) => {
+  try {
+    const address = authClient.getIdentity().getPrincipal().toString();
+    const buf = new Uint8Array(20);
+    crypto.getRandomValues(buf);
+    const nonce = Buffer.from(buf).toString("hex");
+    const message = `${address}/${nonce}`;
+    const enc = new TextEncoder(); // always utf-8
+
+    const signature = await authClient.getIdentity().sign(enc.encode(message));
+    return { message, signature: '0x' + Buffer.from(signature).toString("hex") }; // TODO: check
   } catch (error) {
     throw error;
   }

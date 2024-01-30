@@ -181,7 +181,7 @@ def submit_signed_challenge(request, payload: SiweVerifySubmit):
         raise InvalidNonceException()
 
     try:
-        message: SiweMessage = SiweMessage(payload.message)
+        message: SiweMessage = SiweMessage(payload.message)  # should also work with IC
         verifyParams = {
             "signature": payload.signature,
             # See note in /nonce function above
@@ -194,7 +194,7 @@ def submit_signed_challenge(request, payload: SiweVerifySubmit):
     except siwe.VerificationError:
         raise FailedVerificationException()
 
-    address_lower = payload.message["address"]
+    address_lower = payload.message["address"]  # works both for Ethereum and ICP
 
     try:
         account = Account.objects.get(address=address_lower)
