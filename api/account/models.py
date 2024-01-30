@@ -20,9 +20,10 @@ tz = timezone.utc
 
 
 class EthAddressField(models.CharField):
+    """Ethereum address or ICP principal"""
     def __init__(self, *args, **kwargs):
         if "max_length" not in kwargs:
-            kwargs["max_length"] = 42
+            kwargs["max_length"] = 63 # 42
         super().__init__(*args, **kwargs)
 
     def get_prep_value(self, value):
