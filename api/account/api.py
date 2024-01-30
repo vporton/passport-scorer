@@ -34,6 +34,12 @@ class SiweVerifySubmit(Schema):
 CHALLENGE_STATEMENT = "I authorize the passport scorer.\n\nnonce:"
 
 
+class ICVerifySubmit(Schema):
+    address: str
+    nonce: str
+    signature: str
+
+
 # Returns a random username to be used in the challenge
 def get_random_username():
     return "".join(random.choice(string.ascii_letters) for i in range(32))
@@ -172,13 +178,15 @@ class CommunityApiSchema(ModelSchema):
         model_fields = ["name", "description", "id", "created_at", "use_case"]
 
 
+# TODO: Rebind to "/verify/eth"
 @api.post("/verify", response=TokenObtainPairOutSchema)
 def submit_signed_challenge(request, payload: SiweVerifySubmit):
     payload.message["chain_id"] = payload.message["chainId"]
     payload.message["issued_at"] = payload.message["issuedAt"]
 
-    if not Nonce.use_nonce(payload.message["nonce"]):
-        raise InvalidNonceException()
+    if isinstance(payload.message, dict):  # TODO: Isn't this check against security?
+        if not Nonce.use_nonce(payload.message["nonce"]):
+            raise InvalidNonceException()
 
     try:
         message: SiweMessage = SiweMessage(payload.message)  # should also work with IC
@@ -202,6 +210,40 @@ def submit_signed_challenge(request, payload: SiweVerifySubmit):
         user = get_user_model().objects.create_user(username=get_random_username())
         user.save()
         account = Account(address=address_lower, user=user)
+        account.save()
+
+    refresh = RefreshToken.for_user(account.user)
+
+    # include IP address in JWT claims
+    refresh["ip_address"] = get_client_ip(request)[0]
+
+    refresh = cast(RefreshToken, refresh)
+
+    return {"ok": True, "refresh": str(refresh), "access": str(refresh.access_token)}
+
+
+# FIXME: Use this
+@api.post("/verify/ic", response=TokenObtainPairOutSchema)
+def submit_signed_challenge_ic(request, payload: ICVerifySubmit):
+    message = payload.message["address"] + "\nNonce: " + payload.message["nonce"]
+
+    try:
+        verifyParams = {
+            "signature": payload.signature,
+            # See note in /nonce function above
+            # "nonce": request.session["nonce"],
+        }
+
+    message.verify(**verifyParams)
+
+    address = payload.message["address"]  # works both for Ethereum and ICP
+
+    try:
+        account = Account.objects.get(address=address)
+    except Account.DoesNotExist:
+        user = get_user_model().objects.create_user(username=get_random_username())
+        user.save()
+        account = Account(address=address, user=user)
         account.save()
 
     refresh = RefreshToken.for_user(account.user)

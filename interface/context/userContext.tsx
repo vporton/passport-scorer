@@ -34,8 +34,8 @@ export interface UserState {
 
 export const initialState: UserState = {
   connected: false,
-  readyEth: false,
-  readyIC: false,
+  readyEth: true,
+  readyIC: true,
   connectedEth: false,
   connectedIC: false,
   authenticationError: false,
@@ -59,8 +59,8 @@ export const UserProvider = ({ children }: { children: any }) => {
   const [connectedEth, setConnectedEth] = useState(false);
   const [connectedIC, setConnectedIC] = useState(false);
   const [connected, setConnected] = useState(false);
-  const [readyEth, setReadyEth] = useState(false);
-  const [readyIC, setReadyIC] = useState(false);
+  const [readyEth, setReadyEth] = useState(true);
+  const [readyIC, setReadyIC] = useState(true);
   const [authenticatingEth, setAuthenticatingEth] = useState(false);
   const [authenticatingIC, setAuthenticatingIC] = useState(false);
   const [loginCompleteEth, setLoginCompleteEth] = useState(false);
@@ -226,8 +226,8 @@ export const UserProvider = ({ children }: { children: any }) => {
         } catch (error) {
           console.log("Error: ", error);
         } finally {
-          setReadyEth(false);
-          setReadyIC(false);
+          setReadyEth(true);
+          setReadyIC(true);
         }
       })();
     }, []);

@@ -68,10 +68,11 @@ const SIWICButton = ({
 const LandingPage = () => {
   const { connectedEth, connectedIC, connected, readyEth, readyIC, authenticatingEth, authenticatingIC, loginEth, loginIC } = useContext(UserContext);
 
-  const [ready, setReady] = useState(readyEth && readyIC);
+  const [ready, setReady] = useState(readyEth || readyIC);
   const [authenticating, setAuthenticating] = useState(authenticatingEth);
   useEffect(() => {
-    setReady(readyEth && readyIC);
+    console.log('ready:', `${readyEth} || ${readyIC}`)
+    setReady(readyEth || readyIC); // TODO: correct?
   }, [readyEth, readyIC]);
   useEffect(() => {
     setAuthenticating(authenticatingEth || authenticatingIC);
@@ -106,13 +107,13 @@ const LandingPage = () => {
         className="mt-10 hidden md:block"
         login={loginEth}
         testId="connectWalletButtonDesktop"
-        disabled={!ready}
+        disabled={!readyEth}
       />
       <SIWICButton
         className="mt-10 hidden md:block"
         login={loginIC}
         testId="connectWalletButtonDesktop"
-        disabled={!ready}
+        disabled={!readyIC}
       />
     </div>
   );
@@ -128,13 +129,13 @@ const LandingPage = () => {
         <SIWEButton
           className="col-span-4 block md:hidden"
           login={loginEth}
-          disabled={!ready}
+          disabled={!readyEth}
           testId="connectWalletButtonMobile"
         />
         <SIWICButton
           className="col-span-4 block md:hidden"
           login={loginIC}
-          disabled={!ready}
+          disabled={!readyIC}
           testId="connectWalletButtonMobile"
         />
       </div>

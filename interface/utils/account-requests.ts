@@ -178,10 +178,24 @@ export const getNonce = async () => {
   return data.nonce;
 };
 
+// TODO: Rename to authenticateEth.
 export const authenticate = async (message: SiweMessage, signature: string) => {
   try {
     const response = await axios.post(`${SCORER_BACKEND}account/verify`, {
       message,
+      signature,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const authenticateIC = async (message: {address: string, nonce: string}, signature: string) => {
+  try {
+    const response = await axios.post(`${SCORER_BACKEND}account/verify/ic`, {
+      address: message.address,
+      nonce: message.nonce,
       signature,
     });
     return response.data;
