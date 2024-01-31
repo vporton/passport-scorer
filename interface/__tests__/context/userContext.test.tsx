@@ -4,7 +4,7 @@ import { UserProvider, UserContext } from "../../context/userContext";
 import { useConnectWallet, useWallets } from "@web3-onboard/react";
 import { EIP1193Provider, WalletState } from "@web3-onboard/core";
 import { initiateSIWE } from "../../utils/siwe";
-import { authenticate } from "../../utils/account-requests";
+import { authenticateEth } from "../../utils/account-requests";
 
 const mockWallet: WalletState = {
   accounts: [
@@ -88,7 +88,7 @@ describe("UserProvider", () => {
       siweMessage: {},
       signature: "signature",
     });
-    (authenticate as jest.Mock).mockResolvedValue({
+    (authenticateEth as jest.Mock).mockResolvedValue({
       access: "token",
     });
   });

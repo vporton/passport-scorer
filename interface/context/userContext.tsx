@@ -6,7 +6,7 @@ import { AuthClient } from "@dfinity/auth-client";
 import "../utils/onboard";
 
 import { initiateSIWE, initiateSIWIC } from "../utils/siwe";
-import { authenticate, verifyToken } from "../utils/account-requests";
+import { authenticateEth, authenticateIC, verifyToken } from "../utils/account-requests";
 import {
   headerInterceptor,
   isServerOnMaintenance,
@@ -173,7 +173,7 @@ export const UserProvider = ({ children }: { children: any }) => {
     try {
       setAuthenticatingEth(true);
       const { siweMessage, signature } = await initiateSIWE(wallet);
-      const tokens = await authenticate(siweMessage, signature);
+      const tokens = await authenticateEth(siweMessage, signature);
 
       window.localStorage.setItem(
         "connectedWallets",
@@ -196,12 +196,15 @@ export const UserProvider = ({ children }: { children: any }) => {
   const authenticateICWithScorerApi = async (authClient: AuthClient) => {
     try {
       setAuthenticatingIC(true);
-      const { message, signature } = await initiateSIWIC(authClient);
-      const tokens = await authenticate(message, signature);
+      const principal = authClient.getIdentity().getPrincipal();
+      console.log("EEE", [authClient.getIdentity().getPublicKey().toRaw, authClient.getIdentity().getPublicKey().rawKey]);
+      const { pubkey, signature, nonce } = await initiateSIWIC(authClient);
+      console.log("CCC", pubkey, signature, nonce);
+      const tokens = await authenticateIC({pubkey, nonce}, signature);
 
       window.localStorage.setItem(
         "connectedWallets",
-        JSON.stringify([authClient.getIdentity().getPrincipal().toString()])
+        JSON.stringify([principal.toString()])
       );
 
       // store JWT access token in LocalStorage

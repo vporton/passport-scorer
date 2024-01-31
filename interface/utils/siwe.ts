@@ -43,15 +43,30 @@ export const initiateSIWE = async (wallet: WalletState) => {
 // TODO: Duplicate code with initiateSIWE
 export const initiateSIWIC = async (authClient: AuthClient) => {
   try {
-    const address = authClient.getIdentity().getPrincipal().toString();
+    console.log("X1")
+    const address = authClient.getIdentity().getPrincipal();
+    console.log("X2")
+    const pubkey = authClient.getIdentity().getPublicKey();
+    console.log("X3")
+    const addressStr = address.toString();
+    console.log("X4")
     const buf = new Uint8Array(20);
+    console.log("X5")
     crypto.getRandomValues(buf);
-    const nonce = Buffer.from(buf).toString("hex");
-    const message = `${address}/${nonce}`;
+    console.log("X6")
+    const nonce = Buffer.from(buf);
+    console.log("X7")
+    const nonceStr = nonce.toString("hex");
+    console.log("X8")
+    const message = `${addressStr}\nNonce: ${nonceStr}`
+    console.log("X9")
     const enc = new TextEncoder(); // always utf-8
+    console.log("X10")
 
     const signature = await authClient.getIdentity().sign(enc.encode(message));
-    return { message, signature: '0x' + Buffer.from(signature).toString("hex") }; // TODO: check
+    console.log("X11", pubkey, "|", pubkey)
+    console.log("X12", { pubkey: Buffer.from(pubkey.toDer()), signature, nonce })
+    return { pubkey: Buffer.from(pubkey.toDer()), signature, nonce };
   } catch (error) {
     throw error;
   }

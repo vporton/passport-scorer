@@ -68,12 +68,7 @@ const SIWICButton = ({
 const LandingPage = () => {
   const { connectedEth, connectedIC, connected, readyEth, readyIC, authenticatingEth, authenticatingIC, loginEth, loginIC } = useContext(UserContext);
 
-  const [ready, setReady] = useState(readyEth || readyIC);
   const [authenticating, setAuthenticating] = useState(authenticatingEth);
-  useEffect(() => {
-    console.log('ready:', `${readyEth} || ${readyIC}`)
-    setReady(readyEth || readyIC); // TODO: correct?
-  }, [readyEth, readyIC]);
   useEffect(() => {
     setAuthenticating(authenticatingEth || authenticatingIC);
   }, [authenticatingEth, authenticatingIC]);

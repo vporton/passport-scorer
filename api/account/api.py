@@ -1,7 +1,10 @@
+import hashlib
 import random
 import string
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, cast
+
+import ecdsa
 
 import api_logging as logging
 from account.models import Account, AccountAPIKey, Community, Nonce
@@ -18,6 +21,7 @@ from ninja_jwt.schema import RefreshToken
 from ninja_schema import Schema
 from scorer_weighted.models import BinaryWeightedScorer, WeightedScorer
 from siwe import SiweMessage, siwe
+from ic.principal import Principal
 
 from .deduplication import Rules
 
@@ -35,7 +39,7 @@ CHALLENGE_STATEMENT = "I authorize the passport scorer.\n\nnonce:"
 
 
 class ICVerifySubmit(Schema):
-    address: str
+    pubkey: str
     nonce: str
     signature: str
 
@@ -180,7 +184,7 @@ class CommunityApiSchema(ModelSchema):
 
 # TODO: Rebind to "/verify/eth"
 @api.post("/verify", response=TokenObtainPairOutSchema)
-def submit_signed_challenge(request, payload: SiweVerifySubmit):
+def submit_signed_challenge_eth(request, payload: SiweVerifySubmit):
     payload.message["chain_id"] = payload.message["chainId"]
     payload.message["issued_at"] = payload.message["issuedAt"]
 
@@ -222,28 +226,27 @@ def submit_signed_challenge(request, payload: SiweVerifySubmit):
     return {"ok": True, "refresh": str(refresh), "access": str(refresh.access_token)}
 
 
-# FIXME: Use this
 @api.post("/verify/ic", response=TokenObtainPairOutSchema)
 def submit_signed_challenge_ic(request, payload: ICVerifySubmit):
-    message = payload.message["address"] + "\nNonce: " + payload.message["nonce"]
+    print("PAYLOAD: ", payload)
+    public_key = bytes.fromhex(payload.pubkey)
+    signature = bytes.fromhex(payload.signature)
+    nonce = bytes.fromhex(payload.nonce)
+    principal = Principal.self_authenticating(public_key).to_str()
 
+    message = principal.encode('utf-8') + b"\nNonce: " + nonce
+    key = ecdsa.VerifyingKey.from_string(public_key, curve=ecdsa.SECP256k1, hashfunc=hashlib.sha256)
+
+    if not key.verify(signature, message, hashfunc=hashlib.sha256):
+        raise FailedVerificationException(detail="Wrong signature!")
+
+    # TODO: below code is duplicate with submit_signed_challenge_eth
     try:
-        verifyParams = {
-            "signature": payload.signature,
-            # See note in /nonce function above
-            # "nonce": request.session["nonce"],
-        }
-
-    message.verify(**verifyParams)
-
-    address = payload.message["address"]  # works both for Ethereum and ICP
-
-    try:
-        account = Account.objects.get(address=address)
+        account = Account.objects.get(address=principal)
     except Account.DoesNotExist:
         user = get_user_model().objects.create_user(username=get_random_username())
         user.save()
-        account = Account(address=address, user=user)
+        account = Account(address=principal, user=user)
         account.save()
 
     refresh = RefreshToken.for_user(account.user)
