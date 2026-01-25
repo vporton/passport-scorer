@@ -10,7 +10,7 @@
     "@didtools/cacao": "^1.1.0",
     "cid": "multiformats/cid",
     "cors": "^2.8.5",
-    "dids": "^3.4.0",
+    "dids": "^4.0.3",
     "express": "^4.18.2",
     "key-did-resolver": "^2.3.0"
   },
